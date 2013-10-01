@@ -50,6 +50,37 @@ define(function (require, exports, module) {
         panel,
         visible = false,
         realVisibility = false;
+
+    var MathExtractor = function() {
+
+        var map = {}, nextID = 1;
+
+        function id(text) {
+            for (;;) {
+                var cid = '$Math-' + nextID++ + '$';
+                if (text.indexOf(cid) == -1) return cid;
+            }
+        }
+
+        return {
+            extract: function(text) {
+                return text.replace(/\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$/g, function(a) {
+                    var r = id(text);
+                    map[r] = a;
+                    return r;
+                });
+            },
+            insert: function(text) {
+                for (var i in map) {
+                    if (Object.prototype.hasOwnProperty.call(map, i)) {
+                        text = text.split(i).join(map[i]);
+                    }
+                }
+                return text
+            }
+        };
+        
+    }
     
     function _loadDoc(doc, preserveScrollPos) {
         if (doc && visible && $iframe) {
@@ -69,12 +100,15 @@ define(function (require, exports, module) {
             }
             
             // Parse markdown into HTML
-            bodyText = marked(docText);
+            var extractor = new MathExtractor();
+            bodyText = marked(extractor.extract(docText));
+            bodyText = extractor.insert(bodyText);
             
             // Remove link hrefs
             bodyText = bodyText.replace(/href=\"([^\"]*)\"/g, "title=\"$1\"");
             var htmlSource = "<html><head>";
             htmlSource += "<link href='" + require.toUrl("./markdown.css") + "' rel='stylesheet'></link>";
+            htmlSource += '<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>';
             htmlSource += "</head><body onload='document.body.scrollTop=" + scrollPos + "'>";
             htmlSource += bodyText;
             htmlSource += "</body></html>";
@@ -121,24 +155,31 @@ define(function (require, exports, module) {
         }
     }
 
+
     function _currentDocChangedHandler() {
         var doc = DocumentManager.getCurrentDocument(),
             ext = doc ? PathUtils.filenameExtension(doc.file.fullPath).toLowerCase() : "";
         
         if (currentDoc) {
-            $(currentDoc).off("change", _documentChange);
+            // $(currentDoc).off("change", _documentChange);
             currentDoc = null;
         }
         
         if (doc && /md|markdown|txt/.test(ext)) {
             currentDoc = doc;
-            $(currentDoc).on("change", _documentChange);
+            // $(currentDoc).on("change", _documentChange);
             $icon.css({display: "block"});
             _setPanelVisibility(visible);
             _loadDoc(doc);
         } else {
             $icon.css({display: "none"});
             _setPanelVisibility(false);
+        }
+    }
+
+    function _documentSavedHandler(event, doc) {
+        if (currentDoc === doc) {
+            _loadDoc(doc, true);
         }
     }
     
@@ -164,6 +205,7 @@ define(function (require, exports, module) {
     
     // Add a document change handler
     $(DocumentManager).on("currentDocumentChange", _currentDocChangedHandler);
+    $(DocumentManager).on("documentSaved", _documentSavedHandler);
     
     // currentDocumentChange is *not* called for the initial document. Use
     // appReady() to set initial state.

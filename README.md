@@ -7,16 +7,21 @@ A [Brackets](https://github.com/adobe/brackets) extension that provides a live p
 * Select **File > Extension Manager...** (or click the "brick" icon in the toolbar)
 * Click **Install from URL...**
 * Enter the url of this repo: 
- * For Brackets Sprint 27 (or earlier): https://github.com/gruehle/MarkdownPreview/archive/sprint-27.zip
- * For Brackets Sprint 28 (or later): https://github.com/gruehle/MarkdownPreview
+ * For Brackets Sprint 28 (or later): https://github.com/dtinth/brackets-MathJaxMarkdownPreview
 * Click **Install**
+
+### Difference from [gruehle/MarkdownPreview](https://github.com/gruehle/MarkdownPreview)
+
+* MathJax with \\( and \\) and $$.
+* Sans-serif font by default.
+* Preview on save (no live preview).
 
 ### How To Use
 When a markdown document (with extension ".md" or ".markdown") is open, a markdown icon is shown in the 
 toolbar at the top of the Brackets window. Click this icon to open the preview panel. The panel can be 
 resized vertically.
 
-The preview is updated as you edit the document. You can hover over links to see the href in a tooltip.
+The preview is updated when you save the document. You can hover over links to see the href in a tooltip.
 
 ### Credits
 This extension uses the following open source components:
